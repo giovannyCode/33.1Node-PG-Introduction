@@ -1,6 +1,7 @@
 const express = require("express");
 const ExpressError = require("../expressError");
 const router = express.Router();
+const slugify = require("slugify");
 const db = require("../db");
 
 router.get("/", async (req, res, next) => {
@@ -18,10 +19,20 @@ router.get("/:code", async (req, res, next) => {
     const results = await db.query("SELECT * FROM companies WHERE code = $1", [
       code,
     ]);
+    const industriesQ = await db.query(
+      `SELECT i.industry_name
+          FROM
+          company_industries ci inner join industries i
+          on ci.industry_code = i.code
+            WHERE company_code = $1`,
+      [code]
+    );
+    let { name, description } = results.rows[0];
+    const industries = industriesQ.rows.map((item) => item.industry_name);
     if (results.rows.length === 0) {
-      throw new ExpressError(`Can't find user with id of ${id}`, 404);
+      throw new ExpressError(`Can't find company with id of ${id}`, 404);
     }
-    return res.send({ company: results.rows[0] });
+    return res.send({ company: { code, name, description, industries } });
   } catch (e) {
     return next(e);
   }
@@ -29,7 +40,9 @@ router.get("/:code", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const { code, name, description } = req.body;
+    const { name, description } = req.body;
+    const code = slugify(name, { lower: true });
+
     const results = await db.query(
       "INSERT INTO companies (code ,name, description) VALUES ($1, $2,$3) RETURNING code, name, description",
       [code, name, description]

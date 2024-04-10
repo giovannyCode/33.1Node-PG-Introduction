@@ -28,3 +28,36 @@ INSERT INTO invoices (comp_Code, amt, paid, paid_date)
          ('apple', 200, false, null),
          ('apple', 300, true, '2018-01-01'),
          ('ibm', 400, false, null);
+
+
+CREATE TABLE industries (
+    code text PRIMARY KEY,
+    industry_name text NOT NULL UNIQUE,
+    
+);
+
+INSERT INTO industries (code, industry_name)
+  VALUES ('acct','Accounting' ),
+         ('softDev','Software Development'),
+         ('hlth', 'Health'),
+         ('aviv', 'Aviation');
+
+CREATE TABLE company_industries (
+    company_code TEXT NOT NULL REFERENCES companies,
+    industry_code TEXT NOT NULL REFERENCES industries,
+    PRIMARY KEY(company_code, industry_code)
+  
+);
+
+INSERT INTO company_industries (company_code, industry_code)
+  VALUES ('ibm', 'aviv');
+         ('ibm', 'softDev');
+         ('apple','softDev'),
+         ('apple','acct'),
+         ('apple', 'hlth'),
+         ('apple', 'aviv');
+
+
+
+
+
